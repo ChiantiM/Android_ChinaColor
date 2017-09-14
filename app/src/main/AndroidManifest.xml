@@ -18,6 +18,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".FoldersAcivity"
+                  android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
+        </activity>
         <provider
             android:authorities="com.chinacolor.chinesetraditionalcolors.provider"
             android:name="com.chinacolor.chinesetraditionalcolors.ColorProvider"/>

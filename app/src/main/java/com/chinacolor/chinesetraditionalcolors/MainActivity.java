@@ -4,12 +4,11 @@ import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.net.Uri;
-import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -39,7 +38,7 @@ import java.util.List;
  * 保持colorValue和colorname数目一致
  *
  * Todo:
- * 添加actionbar, 展示收藏项目
+ * 展示收藏项目
  */
 public class MainActivity extends AppCompatActivity {
     private View bg;
@@ -118,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MainAcitivity", "检测到收藏");
             }
         }
-
 
         //设置gView适配器
         ColorAdapter adapter = new ColorAdapter(MainActivity.this, R.layout.color_item, colorList);
@@ -258,6 +256,11 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Overflow的选项监听
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -266,7 +269,9 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_favorite) {
+            Intent toFoldersActivity = new Intent(MainActivity.this, FoldersAcivity.class);
+            startActivity(toFoldersActivity);
             return true;
         }
 
@@ -275,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 强制显示overflow
-     */
+
     private void getOverflowMenu() {
         ViewConfiguration viewConfig = ViewConfiguration.get(this);
 
@@ -296,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
+    */
 }
 
 
