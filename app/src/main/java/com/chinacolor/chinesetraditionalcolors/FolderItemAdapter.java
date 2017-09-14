@@ -34,7 +34,7 @@ public class FolderItemAdapter extends ArrayAdapter<Color> {
         View view;
         ViewHolder viewHolder; //防每次都获取一次id
 
-        if (convertView != null){
+        if (convertView == null){
             view = LayoutInflater.from(getContext()).inflate(itemLayoutid, null);
             viewHolder = new ViewHolder();
             viewHolder.color = (ImageView)view.findViewById(R.id.item_color);

@@ -74,14 +74,20 @@ public class FoldersAcivity extends AppCompatActivity {
         // Query from Color.db
         // Foldername must be Color.db's attribute
         Cursor cursor = getContentResolver().query(uri, null, folderName + "= ?", new String[]{"1"}, null);
+        //Cursor cursor = getContentResolver().query(uri, new String[]{"favorite"}, null, null, null);
         if (cursor != null){
             if (cursor.moveToFirst()){
                 do {
-                    //get name and colorvalue
-                    colorName = new StringBuilder(cursor.getString(cursor.getColumnIndex("name")));
-                    colorValue = new StringBuilder(cursor.getString(cursor.getColumnIndex("value")));
-                    long value= Long.parseLong(colorValue.toString(), 16);
-                    colorItemList.add(new Color(colorName.toString(), new Long(value).intValue()) );
+                    //int isfavoer = cursor.getInt(cursor.getColumnIndex("favorite"));
+                    //if (isfavoer == 1) {
+                        //get name and colorvalue
+                        colorName = new StringBuilder(cursor.getString(cursor.getColumnIndex("name")));
+
+                        colorValue = new StringBuilder(cursor.getString(cursor.getColumnIndex
+                                ("value")));
+                        long value = Long.parseLong(colorValue.toString(), 16);
+                        colorItemList.add(new Color(colorName.toString(), new Long(value).intValue()));
+                    //}
                 }while (cursor.moveToNext());
                 Log.d("FoldersAcivity", "成功查询到数据");
             }else {Log.d("FoldersAcivity","查询成功，无数据");
