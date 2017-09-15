@@ -38,7 +38,7 @@ import java.util.List;
  * 保持colorValue和colorname数目一致
  *
  * Todo:
- * 展示收藏项目
+ * 收藏到不同文件夹
  */
 public class MainActivity extends AppCompatActivity {
     private View bg;

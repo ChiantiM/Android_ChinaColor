@@ -32,6 +32,8 @@ import java.util.Set;
  * 文件夹名称同时放入数据库和SharedPreference
  * 存储列名的SP文件名为user_folders,用Set<String> folders存储，与数据库列要保持一致
  *
+ * TODO:动态加载视图
+ *
  */
 
 public class FoldersAcivity extends AppCompatActivity {
