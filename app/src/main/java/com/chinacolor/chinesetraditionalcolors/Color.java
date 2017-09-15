@@ -6,8 +6,8 @@ package com.chinacolor.chinesetraditionalcolors;
 
 public class Color {
 
-    public int colorValue;
-    public String colorName;
+    private int colorValue;
+    private String colorName;
 
     public Color(String name, int value){
         colorValue = value;
