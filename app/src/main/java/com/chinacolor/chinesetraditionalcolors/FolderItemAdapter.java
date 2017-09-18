@@ -47,7 +47,7 @@ public class FolderItemAdapter extends ArrayAdapter<Color> {
         }
 
         viewHolder.colorName.setText(color.getColorName());
-        viewHolder.colorvalueHex.setText("#" + color.getColorValue());
+        viewHolder.colorvalueHex.setText("#" + Integer.toHexString(color.getColorValue()));
         GradientDrawable myGrad = (GradientDrawable)viewHolder.color.getBackground();
         myGrad.setColor(color.getColorValue());
 

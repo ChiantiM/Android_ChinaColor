@@ -2,22 +2,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="horizontal"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent"
+    android:paddingVertical="10dp">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
     <ImageView
         android:id="@+id/item_color"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/round"/>
+        android:background="@drawable/round"
+        android:layout_marginRight="30dp"/>
     <TextView
+        android:gravity="center_vertical|left"
+        android:layout_weight="5"
         android:id="@+id/item_rgb"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:textColor="#fff"
         android:text="RGB"/>
     <TextView
+        android:gravity="center_vertical|right"
+        android:layout_weight="4"
         android:id="@+id/item_colorname"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:textColor="#fff"
         android:text="NAME"/>
-
+    </LinearLayout>
 </LinearLayout>

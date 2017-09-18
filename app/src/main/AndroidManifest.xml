@@ -22,6 +22,10 @@
                   android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         </activity>
+        <activity android:name=".FolderItemActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
+        </activity>
         <provider
             android:authorities="com.chinacolor.chinesetraditionalcolors.provider"
             android:name="com.chinacolor.chinesetraditionalcolors.ColorProvider"/>

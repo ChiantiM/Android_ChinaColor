@@ -3,7 +3,8 @@
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:orientation="vertical"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent"
+    android:background="#414650">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/folders_toolbar"
@@ -14,16 +15,12 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
-    <TextView
+    <ListView
+        android:id="@+id/folder_name_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/favorite_folder"
-        android:text="FolderName"
-        android:background="#55000000"
-        android:clickable="true"/>
-    <ListView
-        android:id="@+id/favorite_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"></ListView>
+        >
+
+    </ListView>
 
 </LinearLayout>

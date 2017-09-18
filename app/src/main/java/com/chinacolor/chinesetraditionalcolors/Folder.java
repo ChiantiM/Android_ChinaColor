@@ -1,6 +1,7 @@
 package com.chinacolor.chinesetraditionalcolors;
 
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.view.View;
@@ -40,9 +41,9 @@ public class Folder {
      * @param context
      * @return null/folder_name
      */
+    private String returnName;
     public String CreatenewFolder(Context context){
-        final String returnName = null;
-
+        returnName = null;
         final AlertDialog mydialog = new AlertDialog.Builder(context).create();
         mydialog.show();
         mydialog.getWindow().setContentView(R.layout.newfolder_dialog);
@@ -70,18 +71,29 @@ public class Folder {
                         if(name.isEmpty()) {
                             Toast.makeText(view.getContext(), "名称不能为空", Toast.LENGTH_SHORT).show();
                         }else {
-                            //加入SP
                             foldersName.add(name);
                             //更新数据库
                             SQLiteDatabase db = new ColorHelper(view.getContext(), "Colors.db", null, 1)
                                     .getWritableDatabase();
-                            db.execSQL("alter table Colors add column" + name +"text");
-                            Toast.makeText(view.getContext(), "创建成功", Toast.LENGTH_SHORT).show();
+                            db.beginTransaction();
+                            db.execSQL("alter table Colors add column" + name +"int");
+
+                            SQLiteDatabase db_folder = new FolderHelper(view.getContext(), "Folders.db", null, 1).getWritableDatabase();
+                            ContentValues cv = new ContentValues();
+                            cv.put("name", name);
+                            db_folder.insert("Folders", null, cv);
+                            db.endTransaction();
+
+                            Toast.makeText(view.getContext(), "创建\""+name+"\"成功", Toast.LENGTH_SHORT).show();
                         }
-                        name = returnName;
+                        returnName = name;
                         mydialog.dismiss();
                     }
                 });
+        //DEBUG
+        //returnName = "xxy";
+        //foldersName.add("xxy");
+
         return returnName;
     }
 

@@ -1,7 +1,9 @@
 package com.chinacolor.chinesetraditionalcolors;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,13 +15,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -29,20 +30,23 @@ import java.util.Set;
  *
  * 注意int是有符号数，parseInt会有坑，0xffffffff颜色不能直接parse为int
  *
- * 文件夹名称同时放入数据库和SharedPreference
- * 存储列名的SP文件名为user_folders,用Set<String> folders存储，与数据库列要保持一致
+ * 文件夹名称同时放入数据库和Folders.db，不使用ContentProvider, 数据直接在自带的data文件夹下
+ * 只有一个列为name,要保持和Colors.db数据库属性的一致性
  *
- * TODO:动态加载视图
+ * listView嵌套无解，推荐用新的Activity
+ *
+ * TODO:添加新的Activity
  *
  */
 
 public class FoldersAcivity extends AppCompatActivity {
-    private TextView folderName;
-    private ListView listView;
+    private static ListView usrfolderslist;
     //用于store user's folder
-    public Folder folder;
-    public String SPName = "user_folders";
-    public String SPItem = "folders";
+    public static Folder folder;
+    public static final String DATABASEName = "Folders.db";
+    //用于listView的动态更新
+    FoldersAdapter foldersAdapter;
+    List<String> userFolder;
     //用于query
     public final String color_dir = "content://com.chinacolor.chinesetraditionalcolors.provider/color";
     public Uri uri = Uri.parse(color_dir);
@@ -57,51 +61,45 @@ public class FoldersAcivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         //initialize favoriteFolder
-        folderName = (TextView)findViewById(R.id.favorite_folder);
-        folderName.setText("favorite");
-        listView = (ListView)findViewById(R.id.favorite_list);
-        listView.setVisibility(ListView.GONE);
+        usrfolderslist= (ListView)findViewById(R.id.folder_name_list);
+        folder = new Folder(new ArrayList<String>());
+        folder.addFoldersName("favorite");
 
-        //initialize userFolder
-        //Read from SP
-        List<String> folder_list = new ArrayList<>();
-        Set<String> folders_name = getSharedPreferences(SPName, MODE_PRIVATE)
-                .getStringSet(SPItem, new HashSet<String>());
-        if (!folders_name.isEmpty()) {
-            for (String name : folders_name) {
-                folder_list.add(name);
-            }
+        //initialize Folders
+        //Read from Folders.db to class Folder
+        SQLiteDatabase db_folders = new FolderHelper(this, DATABASEName, null, 1).getReadableDatabase();
+        Cursor cursor = db_folders.query("Folders", null, null, null, null, null, null);
+        if (cursor != null){
+            if (cursor.moveToFirst()){
+                do {
+                    folder.addFoldersName(cursor.getString(cursor.getColumnIndex("name")));
+                }while (cursor.moveToNext());
+            }else {Log.d("FoldersActivtiy", "来自Folders查询：查询成功，无数据");}
+        }else {
+            Log.d("FoldersActivtiy", "来自Folders查询：查询失败，Cursor为空");
         }
-        folder = new Folder(folder_list);
-        List<String> userFolder = folder.getFoldersName();
+
+        userFolder = folder.getFoldersName();
         if (userFolder.isEmpty()){
             Log.d("FoldersActivity", "没有用户文件夹");
         }else{
-            //动态加载用户文件夹视图
-            Log.d("FoldersActivity", "正在动态加载视图...");
-
+            //加载文件夹视图
+            foldersAdapter = new FoldersAdapter(this, R.layout.folder_title, userFolder);
+            usrfolderslist.setAdapter(foldersAdapter);
         }
 
-        // onClickListener
-        folderName.setOnClickListener(new View.OnClickListener() {
+        // ListView OnItemClickListener
+        usrfolderslist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View view) {
-                if(listView.getVisibility() == ListView.GONE){
-                    List<Color> colorList = getColorItemList(folderName.getText().toString());
-                    if (colorList.isEmpty()){
-                        Log.d("FoldersAcivity", "此收藏夹下颜色列表为空");
-                    }else{
-                        FolderItemAdapter folderItemAdapter = new FolderItemAdapter(FoldersAcivity.this, R.layout.item_layout, colorList);
-                        listView.setAdapter(folderItemAdapter);
-                    }
-                    listView.setVisibility(ListView.VISIBLE);
-                }else {
-                    listView.setVisibility(ListView.GONE);
-                }
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                //Intent
+                String folderName = ((TextView)usrfolderslist.getChildAt(i).findViewById(R.id.folder_title)).getText().toString();
+                Log.d("FoldersAcivity:","已点击列表项:" + folderName);
+                Intent intent = new Intent(FoldersAcivity.this, FolderItemActivity.class);
+                intent.putExtra("folderName", folderName);
+                startActivity(intent);
             }
         });
-
-
     }
 
 
@@ -143,7 +141,7 @@ public class FoldersAcivity extends AppCompatActivity {
 
 
     /**
-     * Overrider ToolBar
+     * Override ToolBar
      * @param menu
      * @return
      */
@@ -165,22 +163,16 @@ public class FoldersAcivity extends AppCompatActivity {
             String name = folder.CreatenewFolder(FoldersAcivity.this);
             //刷新视图
             if (name != null){
-                //保存到本地SP
-                SharedPreferences sp = getSharedPreferences(SPName, MODE_PRIVATE);
-                Set<String> folders_name = sp.getStringSet(SPItem, new HashSet<String>());
-                folders_name.add(name);
-                SharedPreferences.Editor editor= sp.edit();
-                editor.putStringSet(SPItem, folders_name);
-                Log.d("FoldersActivity", "新文件夹名称为"+ name + "已保存");
                 //刷新视图
-                //
-                //
+                userFolder = folder.getFoldersName();
+                foldersAdapter.notifyDataSetChanged();
             }
             return true;
+        }else {
+            return false;
         }
-
-        return super.onOptionsItemSelected(item);
     }
+
 }
 
 
