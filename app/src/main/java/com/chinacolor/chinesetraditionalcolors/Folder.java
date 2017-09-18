@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -42,7 +43,7 @@ public class Folder {
      * @return null/folder_name
      */
     private String returnName;
-    public String CreatenewFolder(Context context){
+    public String CreatenewFolder(final Context context){
         returnName = null;
         final AlertDialog mydialog = new AlertDialog.Builder(context).create();
         mydialog.show();
@@ -72,19 +73,22 @@ public class Folder {
                             Toast.makeText(view.getContext(), "名称不能为空", Toast.LENGTH_SHORT).show();
                         }else {
                             foldersName.add(name);
-                            //更新数据库
-                            SQLiteDatabase db = new ColorHelper(view.getContext(), "Colors.db", null, 1)
-                                    .getWritableDatabase();
-                            db.beginTransaction();
-                            db.execSQL("alter table Colors add column" + name +"int");
+                            //改变UserFavor.db
 
+                            //更新color数据库
+                            SQLiteDatabase db_usr = new UserFavorHelper(view.getContext(), DATABASEINFO.USRDB_NAME, null, 1).getWritableDatabase();
+                            db_usr.execSQL("alter table "+DATABASEINFO.USRTABLE_NAME+ " add column " + name + " INTEGER");
+                            Log.d("Folder.java", "增加"+ name + "列成功");
+                            db_usr.close();
+
+                            //更新文件夹数据库。
                             SQLiteDatabase db_folder = new FolderHelper(view.getContext(), "Folders.db", null, 1).getWritableDatabase();
                             ContentValues cv = new ContentValues();
                             cv.put("name", name);
                             db_folder.insert("Folders", null, cv);
-                            db.endTransaction();
-
                             Toast.makeText(view.getContext(), "创建\""+name+"\"成功", Toast.LENGTH_SHORT).show();
+                            db_folder.close();
+                           // db_usr.endTransaction();
                         }
                         returnName = name;
                         mydialog.dismiss();

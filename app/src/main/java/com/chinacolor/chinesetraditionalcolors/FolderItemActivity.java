@@ -2,6 +2,7 @@ package com.chinacolor.chinesetraditionalcolors;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -37,8 +38,19 @@ public class FolderItemActivity extends AppCompatActivity {
         folderName = getIntent().getStringExtra("folderName");
         tv_title.setText(folderName);
 
-        FolderItemAdapter folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, getColorItemList(folderName));
-        lv_colorlist.setAdapter(folderItemAdapter);
+        if (folderName.equals("favorite")) {
+            List<Color> list_color = getColorItemList(folderName);
+            if(list_color != null){
+                FolderItemAdapter folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
+                lv_colorlist.setAdapter(folderItemAdapter);
+            }
+        }else {
+            List<Color> list_color = usr_getColorItemList(folderName);
+            if(list_color != null){
+                FolderItemAdapter folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
+                lv_colorlist.setAdapter(folderItemAdapter);
+            }
+        }
 
     }
 
@@ -59,11 +71,7 @@ public class FolderItemActivity extends AppCompatActivity {
         if (cursor != null){
             if (cursor.moveToFirst()){
                 do {
-                    //int isfavoer = cursor.getInt(cursor.getColumnIndex("favorite"));
-                    //if (isfavoer == 1) {
-                    //get name and colorvalue
                     colorName = new StringBuilder(cursor.getString(cursor.getColumnIndex("name")));
-
                     colorValue = new StringBuilder(cursor.getString(cursor.getColumnIndex
                             ("value")));
                     long value = Long.parseLong(colorValue.toString(), 16);
@@ -79,4 +87,30 @@ public class FolderItemActivity extends AppCompatActivity {
         return colorItemList;
     }
 
+    /**
+     * Get folder's item from UserFavor.db
+     * @param folderName
+     * @return
+     */
+    public List<Color> usr_getColorItemList(String folderName){
+        List<Color> colorItemList = new ArrayList<Color>();
+        String colorName;
+        int colorValue;
+        //Query From usrFolder
+        SQLiteDatabase db = new UserFavorHelper(FolderItemActivity.this, DATABASEINFO.USRDB_NAME, null, 1)
+                .getReadableDatabase();
+        Cursor cursor = db.query(DATABASEINFO.USRTABLE_NAME, null, folderName + " = ?", new String[]{"1"}, null, null, null);
+        if (cursor != null){
+            if (cursor.moveToFirst()){
+                do {
+                    colorName = cursor.getString(cursor.getColumnIndex("name"));
+                    colorValue = cursor.getInt(cursor.getColumnIndex("value"));
+                    colorItemList.add(new Color(colorName, colorValue));
+                }while (cursor.moveToNext());
+            }else {Log.d("FolderItemActivity", "查詢成功，无数据");}
+        }else {Log.d("FolderItemActivity", "Cursor为空");}
+
+
+        return colorItemList;
+    }
 }

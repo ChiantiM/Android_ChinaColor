@@ -43,13 +43,9 @@ public class FoldersAcivity extends AppCompatActivity {
     private static ListView usrfolderslist;
     //用于store user's folder
     public static Folder folder;
-    public static final String DATABASEName = "Folders.db";
     //用于listView的动态更新
     FoldersAdapter foldersAdapter;
-    List<String> userFolder;
-    //用于query
-    public final String color_dir = "content://com.chinacolor.chinesetraditionalcolors.provider/color";
-    public Uri uri = Uri.parse(color_dir);
+    List<String> list_usrfolder;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,24 +63,25 @@ public class FoldersAcivity extends AppCompatActivity {
 
         //initialize Folders
         //Read from Folders.db to class Folder
-        SQLiteDatabase db_folders = new FolderHelper(this, DATABASEName, null, 1).getReadableDatabase();
-        Cursor cursor = db_folders.query("Folders", null, null, null, null, null, null);
+        SQLiteDatabase db_folders = new FolderHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1).getReadableDatabase();
+        Cursor cursor = db_folders.query(DATABASEINFO.FOLDERTABLE_NAME, null, null, null, null, null, null);
         if (cursor != null){
             if (cursor.moveToFirst()){
                 do {
                     folder.addFoldersName(cursor.getString(cursor.getColumnIndex("name")));
                 }while (cursor.moveToNext());
-            }else {Log.d("FoldersActivtiy", "来自Folders查询：查询成功，无数据");}
+            }else {Log.d("FoldersActivtiy", "来自USEFAVOR查询：查询成功，无数据");}
         }else {
-            Log.d("FoldersActivtiy", "来自Folders查询：查询失败，Cursor为空");
+            Log.d("FoldersActivtiy", "来自USERFAVOR查询：查询失败，Cursor为空");
         }
+        if (!cursor.isClosed()){cursor.close();}
 
-        userFolder = folder.getFoldersName();
-        if (userFolder.isEmpty()){
+        list_usrfolder = folder.getFoldersName();
+        if (list_usrfolder.isEmpty()){
             Log.d("FoldersActivity", "没有用户文件夹");
         }else{
             //加载文件夹视图
-            foldersAdapter = new FoldersAdapter(this, R.layout.folder_title, userFolder);
+            foldersAdapter = new FoldersAdapter(this, R.layout.folder_title, list_usrfolder);
             usrfolderslist.setAdapter(foldersAdapter);
         }
 
@@ -114,18 +111,13 @@ public class FoldersAcivity extends AppCompatActivity {
 
         // Query from Color.db
         // Foldername must be Color.db's attribute
-        Cursor cursor = getContentResolver().query(uri, null, folderName + "= ?", new String[]{"1"}, null);
+        Cursor cursor = getContentResolver().query(DATABASEINFO.COLOR_URI, null, folderName + "= ?", new String[]{"1"}, null);
         //Cursor cursor = getContentResolver().query(uri, new String[]{"favorite"}, null, null, null);
         if (cursor != null){
             if (cursor.moveToFirst()){
                 do {
-                    //int isfavoer = cursor.getInt(cursor.getColumnIndex("favorite"));
-                    //if (isfavoer == 1) {
-                        //get name and colorvalue
                         colorName = new StringBuilder(cursor.getString(cursor.getColumnIndex("name")));
-
-                        colorValue = new StringBuilder(cursor.getString(cursor.getColumnIndex
-                                ("value")));
+                        colorValue = new StringBuilder(cursor.getString(cursor.getColumnIndex("value")));
                         long value = Long.parseLong(colorValue.toString(), 16);
                         colorItemList.add(new Color(colorName.toString(), new Long(value).intValue()));
                     //}
@@ -135,6 +127,7 @@ public class FoldersAcivity extends AppCompatActivity {
             }
         }else {Log.d("FoldersActivity", "Cursor为空，查询失败");
         }
+        if (!cursor.isClosed()){cursor.close();}
 
         return colorItemList;
     }
@@ -161,10 +154,18 @@ public class FoldersAcivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.new_folder_button) {
             String name = folder.CreatenewFolder(FoldersAcivity.this);
-            //刷新视图
+
+//            SQLiteDatabase db_usr = new UserFavorHelper(this, DATABASEINFO.USRDB_NAME, null, 1).getWritableDatabase();
+//            db_usr.beginTransaction();
+//            db_usr.execSQL("alter table "+DATABASEINFO.USRTABLE_NAME+ " add column " + name + "2 integer");
+//            db_usr.execSQL("alter table "+DATABASEINFO.USRTABLE_NAME+ " add column " + name + "3 integer;");
+//            Log.d("FoldersAcivity.java", "增加"+ name + "列成功");
+//            db_usr.endTransaction();
+//            db_usr.close();
+
             if (name != null){
                 //刷新视图
-                userFolder = folder.getFoldersName();
+                list_usrfolder = folder.getFoldersName();
                 foldersAdapter.notifyDataSetChanged();
             }
             return true;
