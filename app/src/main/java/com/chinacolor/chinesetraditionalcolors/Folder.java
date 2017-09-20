@@ -29,9 +29,13 @@ public class Folder {
         this.foldersName.add(name);
     }
 
+    public void removeFoldersName(String name){
+        this.foldersName.remove(this.foldersName.indexOf(name));
+    }
+
     /**
      * 构造，从本地初始化foldersName
-     * 使用方法：在Activity中读取SP中的String Set,将数据存入foldersName
+     * 使用方法：在Activity中读取,将数据存入foldersName
      */
     public Folder(List<String> foldersName) {
         this.foldersName = foldersName;
@@ -71,24 +75,32 @@ public class Folder {
                         String name = newfloder_name.getText().toString();
                         if(name.isEmpty()) {
                             Toast.makeText(view.getContext(), "名称不能为空", Toast.LENGTH_SHORT).show();
+                        } else if (foldersName.contains(name)) {
+                            Toast.makeText(view.getContext(), "名称已被占用", Toast.LENGTH_SHORT).show();
+                        } else if (Character.isDigit(name.charAt(0))){
+                            Toast.makeText(view.getContext(), "不能以数字开头", Toast.LENGTH_SHORT).show();
                         }else {
                             foldersName.add(name);
                             //改变UserFavor.db
 
                             //更新color数据库
-                            SQLiteDatabase db_usr = new UserFavorHelper(view.getContext(), DATABASEINFO.USRDB_NAME, null, 1).getWritableDatabase();
-                            db_usr.execSQL("alter table "+DATABASEINFO.USRTABLE_NAME+ " add column " + name + " INTEGER");
-                            Log.d("Folder.java", "增加"+ name + "列成功");
+                            SQLiteDatabase db_usr = new UserFavorHelper(view.getContext(),
+                                    DATABASEINFO.USRDB_NAME, null, 1).getWritableDatabase();
+                            db_usr.execSQL("alter table " + DATABASEINFO.USRTABLE_NAME + " add " +
+                                    "column " + name + " INTEGER");
+                            Log.d("Folder.java", "增加" + name + "列成功");
                             db_usr.close();
 
                             //更新文件夹数据库。
-                            SQLiteDatabase db_folder = new FolderHelper(view.getContext(), "Folders.db", null, 1).getWritableDatabase();
+                            SQLiteDatabase db_folder = new FolderHelper(view.getContext(),
+                                    "Folders.db", null, 1).getWritableDatabase();
                             ContentValues cv = new ContentValues();
                             cv.put("name", name);
                             db_folder.insert("Folders", null, cv);
-                            Toast.makeText(view.getContext(), "创建\""+name+"\"成功", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(view.getContext(), "创建\"" + name + "\"成功", Toast
+                                    .LENGTH_SHORT).show();
                             db_folder.close();
-                           // db_usr.endTransaction();
+                            // db_usr.endTransaction();
                         }
                         returnName = name;
                         mydialog.dismiss();

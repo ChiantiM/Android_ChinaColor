@@ -97,7 +97,7 @@ public class FolderItemActivity extends AppCompatActivity {
     public List<Color> usr_getColorItemList(String folderName){
         List<Color> colorItemList = new ArrayList<Color>();
         String colorName;
-        int colorValue;
+        StringBuilder colorValue;
         //Query From usrFolder
         SQLiteDatabase db = new UserFavorHelper(FolderItemActivity.this, DATABASEINFO.USRDB_NAME, null, 1)
                 .getReadableDatabase();
@@ -106,8 +106,10 @@ public class FolderItemActivity extends AppCompatActivity {
             if (cursor.moveToFirst()){
                 do {
                     colorName = cursor.getString(cursor.getColumnIndex("name"));
-                    colorValue = cursor.getInt(cursor.getColumnIndex("value"));
-                    colorItemList.add(new Color(colorName, colorValue));
+                    colorValue = new StringBuilder(cursor.getString(cursor.getColumnIndex
+                            ("value")));
+                    long value = Long.parseLong(colorValue.toString(), 16);
+                    colorItemList.add(new Color(colorName, new Long(value).intValue()));
                 }while (cursor.moveToNext());
             }else {Log.d("FolderItemActivity", "查詢成功，无数据");}
         }else {Log.d("FolderItemActivity", "Cursor为空");}

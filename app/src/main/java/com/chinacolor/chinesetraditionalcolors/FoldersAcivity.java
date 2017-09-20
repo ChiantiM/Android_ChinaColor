@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -18,6 +19,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +37,7 @@ import java.util.List;
  *
  * listView嵌套无解，推荐用新的Activity
  *
- * TODO:添加新的Activity
+ * TODO:解决SQLITE无法删除列的问题
  *
  */
 
@@ -63,8 +65,8 @@ public class FoldersAcivity extends AppCompatActivity {
 
         //initialize Folders
         //Read from Folders.db to class Folder
-        FolderHelper folderHelper = new FolderHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1);
-        SQLiteDatabase db_folders = folderHelper.getReadableDatabase();
+        final FolderHelper folderHelper = new FolderHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1);
+        final SQLiteDatabase db_folders = folderHelper.getReadableDatabase();
         Cursor cursor = db_folders.query(DATABASEINFO.FOLDERTABLE_NAME, null, null, null, null, null, null);
         if (cursor != null){
             if (cursor.moveToFirst()){
@@ -76,6 +78,7 @@ public class FoldersAcivity extends AppCompatActivity {
             Log.d("FoldersActivtiy", "来自USERFAVOR查询：查询失败，Cursor为空");
         }
         if (!cursor.isClosed()){cursor.close();}
+        db_folders.close();
 
         list_usrfolder = folder.getFoldersName();
         if (list_usrfolder.isEmpty()){
@@ -98,6 +101,103 @@ public class FoldersAcivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        List<String> longPress = new ArrayList<>();
+        longPress.add("删除");
+        final PopupList popupList = new PopupList(FoldersAcivity.this);
+        popupList.bind(usrfolderslist, longPress, new PopupList.PopupListListener(){
+            @Override
+            public boolean showPopupList(View adapterView, View contextView, int contextPosition) {
+                return true;
+            }
+
+            @Override
+            public void onPopupListClick(View contextView, int contextPosition, int position) {
+                TextView tv_title = (TextView)usrfolderslist.getChildAt(contextPosition).findViewById(R.id.folder_title);
+                String name = tv_title.getText().toString();
+                Log.d("FolderAcitvity", "当前删除的为"+name);
+                if (contextPosition != 0) {
+                    switch (position) {
+                        case 0:
+                            List<String> folders = folder.getFoldersName();
+                            //usrfolderslist.getChildAt(contextPosition).setVisibility(View.GONE);
+
+                            //sqlite删除列
+                            SQLiteDatabase db_usr = new UserFavorHelper(contextView.getContext(), DATABASEINFO.USRDB_NAME, null, 1)
+                                    .getWritableDatabase();
+                            SQLiteDatabase db = folderHelper.getWritableDatabase();;
+                            db_usr.beginTransaction();
+                            try {
+                                int folder_list_size = list_usrfolder.size();
+                                StringBuilder create_java = new StringBuilder("CREATE TABLE copied AS SELECT name, value");
+                                if (folder_list_size - 1 > 1) {
+                                    create_java.append(", ");
+                                    for (int i = 1; i < folder_list_size;i++) {//不包括favorite
+                                        if (i != contextPosition) {
+                                            create_java.append(list_usrfolder.get(i));
+                                            if (i != folder_list_size - 2 && contextPosition==folder_list_size-1) {
+                                                create_java.append(", ");
+                                            }else if(contextPosition != folder_list_size-1 && i != folder_list_size - 1){
+                                                create_java.append(", ");
+                                            }
+                                        }
+                                    }
+                                }
+                                create_java.append(" from " + DATABASEINFO.USRTABLE_NAME);
+                                String str = create_java.toString();
+
+                                db_usr.execSQL("DROP TABLE IF EXISTS copied");
+                                db_usr.execSQL(str);
+                                db_usr.execSQL("DROP TABLE IF EXISTS " + DATABASEINFO.USRTABLE_NAME);
+                                db_usr.execSQL("ALTER TABLE copied RENAME TO "+ DATABASEINFO.USRTABLE_NAME);
+
+                                //Folders.db删除*/
+                                db.beginTransaction();
+                                try {
+                                    db.delete(DATABASEINFO.FOLDERTABLE_NAME, "name = ?", new String[]{name});
+                                    db.setTransactionSuccessful();
+                                } catch (Exception e) {
+                                    Toast.makeText(contextView.getContext(), "delete Failed", Toast.LENGTH_SHORT).show();
+                                    Log.d("FoldersAcitvity", "从Folders删除失败");
+                                } finally {
+                                    db.endTransaction();
+                                    db.close();
+                                }
+                                db_usr.setTransactionSuccessful();
+                                Toast.makeText(contextView.getContext(),"删除" + name + "成功",Toast.LENGTH_SHORT).show();
+                                Log.d("FoldersAcitvity", "删除" + name + "成功");
+                                popupList.getIndicatorView().setVisibility(View.GONE);
+                                folder.removeFoldersName(name);
+                            }catch (Exception e){
+                                Toast.makeText(contextView.getContext(), "delete Failed", Toast.LENGTH_SHORT).show();
+                                e.printStackTrace();
+                                Log.d("FoldersAcitvity", "从UserFavor删除"+name+"失败");
+                            }finally {
+                                db_usr.endTransaction();
+                                db_usr.close();
+                            }
+
+                            if (db_folders.isOpen()){
+                                db_folders.close();
+                            }
+                            if (db.isOpen()){
+                                db.close();
+                            }
+                            foldersAdapter.notifyDataSetChanged();
+
+                            break;
+                        default:
+                            break;
+                    }
+                }else {
+                    Toast.makeText(contextView.getContext(), "不能删除默认文件夹", Toast.LENGTH_SHORT).show();
+                }
+
+
+
+            }
+        });
+
     }
 
 
