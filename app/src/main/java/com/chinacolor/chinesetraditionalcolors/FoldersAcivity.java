@@ -63,7 +63,8 @@ public class FoldersAcivity extends AppCompatActivity {
 
         //initialize Folders
         //Read from Folders.db to class Folder
-        SQLiteDatabase db_folders = new FolderHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1).getReadableDatabase();
+        FolderHelper folderHelper = new FolderHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1);
+        SQLiteDatabase db_folders = folderHelper.getReadableDatabase();
         Cursor cursor = db_folders.query(DATABASEINFO.FOLDERTABLE_NAME, null, null, null, null, null, null);
         if (cursor != null){
             if (cursor.moveToFirst()){

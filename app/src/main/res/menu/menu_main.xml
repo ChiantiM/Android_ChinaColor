@@ -7,5 +7,9 @@
           android:title="我的收藏"
           android:orderInCategory="100"
           app:showAsAction="never"/>
+    <item android:id="@+id/action_addTo"
+          android:title="添加到"
+          android:orderInCategory="100"
+          app:showAsAction="never"/>
 
 </menu>

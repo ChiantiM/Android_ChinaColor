@@ -15,6 +15,11 @@ public class ColorHelper extends SQLiteOpenHelper {
             + "name text, "
             + "favorite integer)";
 
+    public static final String CREATE_COLORINFO_IFNOTEEXISTS = "create table IF NOT EXISTS Colors("
+            + "value text primary key, "
+            + "name text, "
+            + "favorite integer)";
+
     public ColorHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
     }
@@ -23,6 +28,11 @@ public class ColorHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(CREATE_COLORINFO);
         Log.d("ColorHelper" ,"\n 创建数据库成功！");
+    }
+
+    @Override
+    public void onOpen(SQLiteDatabase db) {
+        db.execSQL(CREATE_COLORINFO_IFNOTEEXISTS);
     }
 
     @Override

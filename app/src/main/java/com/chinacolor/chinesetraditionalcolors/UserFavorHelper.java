@@ -14,6 +14,10 @@ public class UserFavorHelper extends SQLiteOpenHelper{
             + "value text primary key, "
             + "name text)";
 
+    public static final String CREATE_COLORINFO_IFNOTEXISTS = "create table IF NOT EXISTS UserFavor("
+            + "value text primary key, "
+            + "name text)";
+
     public UserFavorHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
     }
@@ -22,6 +26,11 @@ public class UserFavorHelper extends SQLiteOpenHelper{
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(CREATE_COLORINFO);
         Log.d("UserFavorrHelper" ,"\n 创建数据库成功！");
+    }
+
+    @Override
+    public void onOpen(SQLiteDatabase db) {
+        db.execSQL(CREATE_COLORINFO_IFNOTEXISTS);
     }
 
     @Override
