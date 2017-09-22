@@ -8,7 +8,7 @@
         android:id="@+id/my_alert_color_text"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:hint="颜色"
+        android:hint="颜色名称"
         android:minHeight="45dp"
         android:textSize="18sp" />
 
@@ -17,7 +17,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:hint="数值"
+        android:hint="16进制RGB数值"
         android:minHeight="45dp"
         android:textSize="18sp"
         android:inputType="text"/>

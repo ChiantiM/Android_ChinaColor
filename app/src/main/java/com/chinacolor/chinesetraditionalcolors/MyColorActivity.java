@@ -252,18 +252,22 @@ public class MyColorActivity extends AppCompatActivity {
                         ContentValues contentValues = new ContentValues();
                         contentValues.put("name", colorname.getText().toString());
                         String s = colorvalue.getText().toString();
-                        if (s.length() >= 6 && s.length() < 9) {
-                            do {
-                                s = "f" + s;
-                            } while (s.length() < 8);
-                            long vm=Long.parseLong(s,16);
-                            contentValues.put("value",s);
-                            db.insert("Mycolor", null, contentValues);
-                            Color x = new Color(colorname.getText().toString(), new Long(vm).intValue());
-                            colormine.add(x);
-                            adapter.notifyDataSetChanged();
-                        } else {
-                            Toast.makeText(MyColorActivity.this, "输入数据不对", Toast.LENGTH_SHORT).show();
+                        if (s.matches("^[0-9a-fA-F]*$")) {
+                            if (s.length() >= 6 && s.length() < 9) {
+                                do {
+                                    s = "f" + s;
+                                } while (s.length() < 8);
+                                long vm=Long.parseLong(s,16);
+                                contentValues.put("value",s);
+                                db.insert("Mycolor", null, contentValues);
+                                Color x = new Color(colorname.getText().toString(), new Long(vm).intValue());
+                                colormine.add(x);
+                                adapter.notifyDataSetChanged();
+                            } else {
+                                Toast.makeText(MyColorActivity.this, "请输入十六进制6位RGB值", Toast.LENGTH_SHORT).show();
+                            }
+                        }else {
+                            Toast.makeText(MyColorActivity.this, "RGB值只包含0-9和a-f", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
