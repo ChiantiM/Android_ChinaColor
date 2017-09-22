@@ -274,18 +274,28 @@ public class MyColorActivity extends AppCompatActivity {
                                     s = "f" + s;
                                 } while (s.length() < 8);
                                 long vm=Long.parseLong(s,16);
+                                int color_value = new Long(vm).intValue();
+                                Color x = new Color(colorname.getText().toString(), color_value);
+                                //用于检测重复
+                                List<Integer> colorvalues = new ArrayList<Integer>();
+                                for (Color c : colormine){
+                                    colorvalues.add(c.getColorValue());
+                                }
 
                                 db.beginTransaction();
                                 try {
-                                    ContentValues contentValues = new ContentValues();
-                                    contentValues.put("name", colorname.getText().toString());
-                                    contentValues.put("value", s);
-                                    db.insert("Mycolor", null, contentValues);
-                                    Color x = new Color(colorname.getText().toString(), new Long(vm).intValue());
+                                    if (!colorvalues.contains(color_value)) {
+                                        ContentValues contentValues = new ContentValues();
+                                        contentValues.put("name", colorname.getText().toString());
+                                        contentValues.put("value", s);
+                                        db.insert("Mycolor", null, contentValues);
 
-                                    colormine.add(x);
-                                    adapter.notifyDataSetChanged();
-                                    db.setTransactionSuccessful();
+                                        colormine.add(x);
+                                        adapter.notifyDataSetChanged();
+                                        db.setTransactionSuccessful();
+                                    } else {
+                                        Toast.makeText(MyColorActivity.this, "已有此颜色", Toast.LENGTH_SHORT).show();
+                                    }
                                 }catch (Exception e){
                                     Toast.makeText(MyColorActivity.this, "添加失败", Toast.LENGTH_SHORT).show();
                                 }finally {
