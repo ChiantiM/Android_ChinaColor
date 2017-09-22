@@ -156,7 +156,7 @@ public class MyColorActivity extends AppCompatActivity {
 
                             if (currentpos == contextPosition) {
                                 if (currentpos>0){
-                                    crossfade(colormine.get(currentpos).getColorValue(), colormine.get(currentpos-1).getColorValue(), colormine.get(currentpos).getColorName());
+                                    crossfade(colormine.get(currentpos).getColorValue(), colormine.get(currentpos-1).getColorValue(), colormine.get(currentpos-1).getColorName());
                                     currentpos -= 1;
                                 }else {
                                     long x = Long.parseLong("ff537376", 16);
