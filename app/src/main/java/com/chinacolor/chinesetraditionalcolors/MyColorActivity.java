@@ -150,14 +150,32 @@ public class MyColorActivity extends AppCompatActivity {
                     case 0:
                         ColorHelper oh = new ColorHelper(MyColorActivity.this, "Colors.db", null, 1);
                         SQLiteDatabase db = oh.getWritableDatabase();
-                        db.delete("Mycolor", "name=?", new String[]{name});
-                        colormine.remove(contextPosition);
-                        db.close();
+                        db.beginTransaction();
+                        try {
+                            db.delete(DATABASEINFO.COLORTABLE_MYCOLOR, "name=?", new String[]{name});
+
+                            if (currentpos == contextPosition) {
+                                if (currentpos>0){
+                                    crossfade(colormine.get(currentpos).getColorValue(), colormine.get(currentpos-1).getColorValue(), colormine.get(currentpos).getColorName());
+                                    currentpos -= 1;
+                                }else {
+                                    long x = Long.parseLong("ff537376", 16);
+                                    crossfade(colormine.get(currentpos).getColorValue(),new Long(x).intValue(), "墨绿");
+                                }
+                            }
+                            colormine.remove(contextPosition);
+                            adapter.notifyDataSetChanged();
+                            db.setTransactionSuccessful();
+                        }catch (Exception e){
+                            Toast.makeText(contextView.getContext(), "删除失败", Toast.LENGTH_SHORT).show();
+                        }finally {
+                            db.endTransaction();
+                            db.close();
+                        }
                         break;
                     default:
                         break;
                 }
-                adapter.notifyDataSetChanged();
             }
         });
 
@@ -249,8 +267,6 @@ public class MyColorActivity extends AppCompatActivity {
                         ColorHelper oh = new ColorHelper(MyColorActivity.this, "Colors.db", null, 1);
                         SQLiteDatabase db = oh.getWritableDatabase();
                         //insert
-                        ContentValues contentValues = new ContentValues();
-                        contentValues.put("name", colorname.getText().toString());
                         String s = colorvalue.getText().toString();
                         if (s.matches("^[0-9a-fA-F]*$")) {
                             if (s.length() >= 6 && s.length() < 9) {
@@ -258,11 +274,24 @@ public class MyColorActivity extends AppCompatActivity {
                                     s = "f" + s;
                                 } while (s.length() < 8);
                                 long vm=Long.parseLong(s,16);
-                                contentValues.put("value",s);
-                                db.insert("Mycolor", null, contentValues);
-                                Color x = new Color(colorname.getText().toString(), new Long(vm).intValue());
-                                colormine.add(x);
-                                adapter.notifyDataSetChanged();
+
+                                db.beginTransaction();
+                                try {
+                                    ContentValues contentValues = new ContentValues();
+                                    contentValues.put("name", colorname.getText().toString());
+                                    contentValues.put("value", s);
+                                    db.insert("Mycolor", null, contentValues);
+                                    Color x = new Color(colorname.getText().toString(), new Long(vm).intValue());
+
+                                    colormine.add(x);
+                                    adapter.notifyDataSetChanged();
+                                    db.setTransactionSuccessful();
+                                }catch (Exception e){
+                                    Toast.makeText(MyColorActivity.this, "添加失败", Toast.LENGTH_SHORT).show();
+                                }finally {
+                                    db.endTransaction();
+                                    db.close();
+                                }
                             } else {
                                 Toast.makeText(MyColorActivity.this, "请输入十六进制6位RGB值", Toast.LENGTH_SHORT).show();
                             }
