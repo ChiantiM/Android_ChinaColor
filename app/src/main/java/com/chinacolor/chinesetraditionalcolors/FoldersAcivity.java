@@ -156,6 +156,11 @@ public class FoldersAcivity extends AppCompatActivity {
                                 try {
                                     db.delete(DATABASEINFO.FOLDERTABLE_NAME, "name = ?", new String[]{name});
                                     db.setTransactionSuccessful();
+                                    db_usr.setTransactionSuccessful();
+                                    Toast.makeText(contextView.getContext(),"删除" + name + "成功",Toast.LENGTH_SHORT).show();
+                                    Log.d("FoldersAcitvity", "删除" + name + "成功");
+                                    popupList.getIndicatorView().setVisibility(View.GONE);
+                                    folder.removeFoldersName(name);
                                 } catch (Exception e) {
                                     Toast.makeText(contextView.getContext(), "delete Failed", Toast.LENGTH_SHORT).show();
                                     Log.d("FoldersAcitvity", "从Folders删除失败");
@@ -163,11 +168,7 @@ public class FoldersAcivity extends AppCompatActivity {
                                     db.endTransaction();
                                     db.close();
                                 }
-                                db_usr.setTransactionSuccessful();
-                                Toast.makeText(contextView.getContext(),"删除" + name + "成功",Toast.LENGTH_SHORT).show();
-                                Log.d("FoldersAcitvity", "删除" + name + "成功");
-                                popupList.getIndicatorView().setVisibility(View.GONE);
-                                folder.removeFoldersName(name);
+
                             }catch (Exception e){
                                 Toast.makeText(contextView.getContext(), "delete Failed", Toast.LENGTH_SHORT).show();
                                 e.printStackTrace();

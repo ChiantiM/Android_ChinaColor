@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/mybackground"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#537376"
+    android:orientation="vertical">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/mine_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_margin="20dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="5">
+
+            <TextView
+                android:id="@+id/color_mine_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:text="墨绿"
+                android:textColor="#fff"
+                android:textSize="50sp"
+                android:typeface="serif" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_weight="1"
+                android:paddingTop="5dp"
+                android:paddingLeft="8sp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R"
+                    android:paddingRight="5sp"
+                    android:textColor="#fff"
+                    android:typeface="serif"/>
+                <TextView
+                    android:id="@+id/color_RR"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="83"
+                    android:paddingRight="10sp"
+                    android:textColor="#fff"
+                    android:typeface="serif"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="G"
+                    android:paddingRight="5sp"
+                    android:textColor="#fff"
+                    android:typeface="serif"/>
+                <TextView
+                    android:id="@+id/color_GG"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="115"
+                    android:paddingRight="10sp"
+                    android:textColor="#fff"
+                    android:typeface="serif"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="B"
+                    android:paddingRight="5sp"
+                    android:textColor="#fff"
+                    android:typeface="serif"/>
+                <TextView
+                    android:id="@+id/color_BB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="118"
+                    android:paddingRight="10sp"
+                    android:textColor="#fff"
+                    android:typeface="serif"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp">
+
+        <GridView
+            android:id="@+id/mygview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:numColumns="auto_fit"
+            android:columnWidth="70dp"
+            android:stretchMode="columnWidth"
+            >
+        </GridView>
+
+    </GridLayout>
+</LinearLayout>

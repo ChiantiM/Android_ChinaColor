@@ -11,5 +11,9 @@
           android:title="添加到"
           android:orderInCategory="100"
           app:showAsAction="never"/>
+    <item android:id="@+id/action_color"
+        android:title="我的颜色"
+        android:orderInCategory="80"
+        app:showAsAction="never"/>
 
 </menu>

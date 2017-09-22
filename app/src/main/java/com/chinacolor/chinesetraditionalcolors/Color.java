@@ -22,5 +22,14 @@ public class Color {
         return colorName;
     }
 
-
+    public void setColorValue(int colorValue) {
+        this.colorValue= colorValue;
+    }
+    public void setcolorName(String colorName) {
+        this.colorName = colorName;
+    }
+    @Override
+    public String toString() {
+        return  colorName + "," + colorValue  ;
+    }
 }

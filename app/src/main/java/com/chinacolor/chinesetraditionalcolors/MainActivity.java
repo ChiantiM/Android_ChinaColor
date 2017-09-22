@@ -278,6 +278,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(toFoldersActivity);
             return true;
         }
+        if(id==R.id.action_color){
+            Intent intent = new Intent(MainActivity.this, MyColorActivity.class);
+            startActivity(intent);
+        }
         if (id == R.id.action_addTo){
             //query from DB
             final List<String> names = new ArrayList<>();

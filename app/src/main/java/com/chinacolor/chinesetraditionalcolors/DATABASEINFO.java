@@ -14,6 +14,7 @@ public class DATABASEINFO {
     public static final String COLORDTABLE_NAME = "Colors";
     public static final String FOLDERTABLE_NAME = "Folders";
     public static final String USRTABLE_NAME = "UserFavor";
+    public static final String COLORTABLE_MYCOLOR = "Mycolor";
 
     public static final String COLOR_DIR = "content://com.chinacolor.chinesetraditionalcolors.provider/color";
     public static final Uri COLOR_URI = Uri.parse(COLOR_DIR);

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/my_alert_color_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="颜色"
+        android:minHeight="45dp"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/my_alert_value_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:hint="数值"
+        android:minHeight="45dp"
+        android:textSize="18sp"
+        android:inputType="text"/>
+</LinearLayout>
