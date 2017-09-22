@@ -83,23 +83,37 @@ public class Folder {
                             foldersName.add(name);
                             //改变UserFavor.db
 
-                            //更新color数据库
+
                             SQLiteDatabase db_usr = new UserFavorHelper(view.getContext(),
                                     DATABASEINFO.USRDB_NAME, null, 1).getWritableDatabase();
-                            db_usr.execSQL("alter table " + DATABASEINFO.USRTABLE_NAME + " add " +
-                                    "column " + name + " INTEGER");
-                            Log.d("Folder.java", "增加" + name + "列成功");
-                            db_usr.close();
-
-                            //更新文件夹数据库。
                             SQLiteDatabase db_folder = new FolderHelper(view.getContext(),
                                     "Folders.db", null, 1).getWritableDatabase();
-                            ContentValues cv = new ContentValues();
-                            cv.put("name", name);
-                            db_folder.insert("Folders", null, cv);
-                            Toast.makeText(view.getContext(), "创建\"" + name + "\"成功", Toast
-                                    .LENGTH_SHORT).show();
-                            db_folder.close();
+                            db_usr.beginTransaction();
+                            db_folder.beginTransaction();
+                            try {
+                                //更新color数据库
+                                db_usr.execSQL("alter table " + DATABASEINFO.USRTABLE_NAME
+                                        + " add " + "column " + name + " INTEGER");
+                                Log.d("Folder.java", "增加" + name + "列成功");
+
+                                //更新文件夹数据库。
+                                ContentValues cv = new ContentValues();
+                                cv.put("name", name);
+                                db_folder.insert("Folders", null, cv);
+                                Toast.makeText(view.getContext(), "创建\"" + name + "\"成功", Toast
+                                        .LENGTH_SHORT).show();
+                                db_usr.setTransactionSuccessful();
+                                db_folder.setTransactionSuccessful();
+                            }catch (Exception e){
+                                Toast.makeText(view.getContext(), "创建\"" + name + "\"失败", Toast
+                                        .LENGTH_SHORT).show();
+                            }finally {
+                                db_usr.endTransaction();
+                                db_folder.endTransaction();
+                                db_usr.close();
+                                db_folder.close();
+                            }
+
                             // db_usr.endTransaction();
                         }
                         returnName = name;

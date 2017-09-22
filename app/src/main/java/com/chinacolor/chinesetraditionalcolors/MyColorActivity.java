@@ -261,12 +261,12 @@ public class MyColorActivity extends AppCompatActivity {
                             db.insert("Mycolor", null, contentValues);
                             Color x = new Color(colorname.getText().toString(), new Long(vm).intValue());
                             colormine.add(x);
+                            adapter.notifyDataSetChanged();
                         } else {
                             Toast.makeText(MyColorActivity.this, "输入数据不对", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
-                adapter.notifyDataSetChanged();
                 ad1.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int i) {
                     }
