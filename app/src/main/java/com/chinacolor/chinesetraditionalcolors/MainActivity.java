@@ -41,8 +41,8 @@ import java.util.List;
  * 在插入，删除，移动时，保持gview与colorlist的顺序一致
  * 保持colorValue和colorname数目一致
  *
- * Todo:
- * 收藏到不同文件夹
+ * ??? 为什么catch块不起作用，都是用if处理的。
+ *
  */
 public class MainActivity extends AppCompatActivity {
     private View bg;
@@ -286,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
             //query from DB
             final List<String> names = new ArrayList<>();
             SQLiteDatabase db = new UserFavorHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1).getReadableDatabase();
-            Cursor cursor= db.query(DATABASEINFO.FOLDERTABLE_NAME, null, null, null, null, null, null);
+            final Cursor cursor= db.query(DATABASEINFO.FOLDERTABLE_NAME, null, null, null, null, null, null);
             if (cursor != null){
                 if (cursor.moveToFirst()){
                     do {
@@ -298,6 +298,11 @@ public class MainActivity extends AppCompatActivity {
             }else {Log.d("Main activity", "Cursor为空");}
             cursor.close();
 
+            final int localFolders_length = names.size();
+
+            //TODO: get 远程folder的name
+            // names.add(name);
+
             //dialog
             final AlertDialog dialog = new AlertDialog.Builder(this).create();
             dialog.show();
@@ -308,20 +313,52 @@ public class MainActivity extends AppCompatActivity {
             lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    //存到user.db
-                    SQLiteDatabase db = new UserFavorHelper(MainActivity.this, DATABASEINFO.USRDB_NAME, null, 1)
-                            .getWritableDatabase();
-                    ContentValues contentValues = new ContentValues();
+                    if (i<localFolders_length){
+                        //存到user.db
+                        SQLiteDatabase db = new UserFavorHelper(MainActivity.this, DATABASEINFO.USRDB_NAME, null, 1)
+                                .getWritableDatabase();
+                        ContentValues contentValues = new ContentValues();
 
-                    contentValues.put("name", colorname[currentColorpos]);
-                    contentValues.put("value", Integer.toHexString(colorValue[currentColorpos]));
-                    contentValues.put(names.get(i), 1);
+                        contentValues.put("name", colorname[currentColorpos]);
+                        String color_rgb = Integer.toHexString(colorValue[currentColorpos]);
+                        contentValues.put("value", color_rgb);
+                        String foldername = names.get(i);
+                        contentValues.put(foldername, 1); // List Name
 
+                        try{
+                            Cursor cursor1 = db.query(DATABASEINFO.USRTABLE_NAME, new String[]{"value", foldername}, "value = ?", new String[]{color_rgb}, null, null, null);
+                            if (!cursor1.moveToFirst()){
+                                long issuccess = db.insert(DATABASEINFO.USRTABLE_NAME, null, contentValues);
+                                if (issuccess != -1){
+                                    Toast.makeText(MainActivity.this, "已添加到"+foldername, Toast.LENGTH_SHORT).show();
+                                }
+                            } else { // 已经存在更新
+                                contentValues = new ContentValues();
+                                contentValues.put(foldername, 1);
+                                int row = db.update(DATABASEINFO.USRTABLE_NAME, contentValues, "value = ?", new String[]{color_rgb});
+                                if (row == 1) {
+                                    if (cursor1.getInt(cursor1.getColumnIndex(foldername)) == 1){
+                                        Toast.makeText(MainActivity.this, "已存在"+foldername+"中", Toast.LENGTH_SHORT).show();
+                                    }else {
+                                        Toast.makeText(MainActivity.this, "添加成功", Toast.LENGTH_SHORT).show();
+                                        Log.d("MainAcitvity", "再次收藏成功");
+                                    }
+                                }else {
+                                    Log.d("MainActivtiy","添加失败返回了" + row + "行");
+                                }
+                            }
+                            cursor1.close();
+                        }catch (android.database.sqlite.SQLiteConstraintException e){
+                            // 这里不知道为什么执行不到
+                            e.printStackTrace();
+                            Log.d("MainActivtit", "插入失败！!" + e.getMessage());
+                        }finally {
+                            db.close();
+                        }
+                    }else{
+                        // TODO: 存到远程的names.get(i)文件夹里
+                    }
 
-                    db.insert(DATABASEINFO.USRTABLE_NAME, null, contentValues);
-                    Toast.makeText(MainActivity.this, "添加成功", Toast.LENGTH_SHORT).show();
-                    db.close();
-                    //
 
                     dialog.dismiss();
                 }

@@ -266,7 +266,7 @@ public class MyColorActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int i) {
                         ColorHelper oh = new ColorHelper(MyColorActivity.this, "Colors.db", null, 1);
                         SQLiteDatabase db = oh.getWritableDatabase();
-                        //insert
+                        
                         String s = colorvalue.getText().toString();
                         if (s.matches("^[0-9a-fA-F]*$")) {
                             if (s.length() >= 6 && s.length() < 9) {

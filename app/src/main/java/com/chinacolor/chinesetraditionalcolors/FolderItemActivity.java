@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -25,9 +26,13 @@ public class FolderItemActivity extends AppCompatActivity {
     public TextView tv_title;
     private ListView lv_colorlist;
     static String folderName;
+    static String folderType;
     //用于query
     public final String color_dir = "content://com.chinacolor.chinesetraditionalcolors.provider/color";
     public Uri uri = Uri.parse(color_dir);
+    List<Color> list_color;
+    FolderItemAdapter folderItemAdapter;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,21 +43,79 @@ public class FolderItemActivity extends AppCompatActivity {
         tv_title = (TextView)findViewById(R.id.acivity_folder_item_title);
         lv_colorlist = (ListView) findViewById(R.id.acivity_folder_item_colorlist);
         folderName = getIntent().getStringExtra("folderName");
+        folderType = getIntent().getStringExtra("type");
         tv_title.setText(folderName);
 
-        if (folderName.equals("favorite")) {
-            List<Color> list_color = getColorItemList(folderName);
-            if(list_color != null){
-                FolderItemAdapter folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
-                lv_colorlist.setAdapter(folderItemAdapter);
+        if (folderType.equals("local")){
+            if (folderName.equals("favorite")) {
+                list_color = getColorItemList(folderName);
+                if(list_color != null){
+                    folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
+                    lv_colorlist.setAdapter(folderItemAdapter);
+                }
+            }else {
+                list_color = usr_getColorItemList(folderName);
+                if(list_color != null){
+                    folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
+                    lv_colorlist.setAdapter(folderItemAdapter);
+                }
             }
-        }else {
-            List<Color> list_color = usr_getColorItemList(folderName);
-            if(list_color != null){
-                FolderItemAdapter folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
-                lv_colorlist.setAdapter(folderItemAdapter);
-            }
+        }else{//folderType.equals("remote")
+            // TODO: 查询远程 foldername = 1的Color条目
+            // 存入List<Color> list_color
+            // 显示color
         }
+
+        // 删除
+        final PopupList popupList = new PopupList(FolderItemActivity.this);
+        List<String> longPress = new ArrayList<>();
+        longPress.add("删除");
+        popupList.bind(lv_colorlist, longPress, new PopupList.PopupListListener() {
+            @Override
+            public boolean showPopupList(View adapterView, View contextView, int contextPosition) {
+                return true;
+            }
+
+            @Override
+            public void onPopupListClick(View contextView, int contextPosition, int position) {
+                TextView tv_rgb = lv_colorlist.getChildAt(contextPosition).findViewById(R.id.item_rgb);
+                String color_rgb_text = tv_rgb.getText().toString();
+                String color_rgb = color_rgb_text.substring(1); // Remove # at the beginning
+
+                if (folderType.equals("local")){
+                    // 删除颜色，就是修改数据库
+                    int row = 0 ;
+                    if(folderName.equals("favorite")){
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put("favorite", 0);
+                        row = getContentResolver().update(uri, contentValues, "value = ?", new String[]{color_rgb});
+                        Log.d("MainActivity", "取消收藏中: \n rows = " + row +"\n value = " + color_rgb);
+
+                    }else{
+                        SQLiteDatabase db = new UserFavorHelper(FolderItemActivity.this, DATABASEINFO.USRDB_NAME, null, 1).getWritableDatabase();
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put(folderName, 0);
+                        row = db.update(DATABASEINFO.USRTABLE_NAME, contentValues, "value = ?", new String[]{color_rgb});
+                        Log.d("FolderItemActivity", "颜色删除影响了" + row + "行");
+                    }
+                    // 检查删除成功没
+                    if(row == 1){
+                        list_color.remove(contextPosition);
+                        Toast.makeText(FolderItemActivity.this, "删除成功", Toast.LENGTH_SHORT).show();
+                    }else {
+                        Toast.makeText(FolderItemActivity.this, "删除失败", Toast.LENGTH_SHORT).show();
+                    }
+
+                }else{
+                    // TODO: Delete Color from 远程数据库
+                }
+
+                folderItemAdapter.notifyDataSetChanged();
+
+
+            }
+        });
+
 
     }
 

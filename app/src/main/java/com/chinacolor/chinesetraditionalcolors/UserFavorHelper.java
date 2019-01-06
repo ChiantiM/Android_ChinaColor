@@ -10,12 +10,12 @@ import android.util.Log;
  */
 
 public class UserFavorHelper extends SQLiteOpenHelper{
-    public static final String CREATE_COLORINFO = "create table UserFavor("
-            + "value text primary key, "
+    public static final String CREATE_COLORINFO = "CREATE TABLE UserFavor("
+            + "value text PRIMARY KEY, "
             + "name text)";
 
-    public static final String CREATE_COLORINFO_IFNOTEXISTS = "create table IF NOT EXISTS UserFavor("
-            + "value text primary key, "
+    public static final String CREATE_COLORINFO_IFNOTEXISTS = "CREATE TABLE IF NOT EXISTS UserFavor("
+            + "value text PRIMARY KEY, "
             + "name text)";
 
     public UserFavorHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -35,7 +35,7 @@ public class UserFavorHelper extends SQLiteOpenHelper{
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL("drop table if exists UserFavor");
+        sqLiteDatabase.execSQL("DROP table if exists UserFavor");
         onCreate(sqLiteDatabase);
     }
 }

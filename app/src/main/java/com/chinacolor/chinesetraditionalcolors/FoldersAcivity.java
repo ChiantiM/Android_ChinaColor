@@ -37,17 +37,21 @@ import java.util.List;
  *
  * listView嵌套无解，推荐用新的Activity
  *
- * TODO:解决SQLITE无法删除列的问题
+ * TODO:重新建表后会重复添加收藏！！
  *
  */
 
 public class FoldersAcivity extends AppCompatActivity {
     private static ListView usrfolderslist;
+    private static ListView remotefolderlist;
     //用于store user's folder
     public static Folder folder;
+    public static Folder remotefolders;
     //用于listView的动态更新
     FoldersAdapter foldersAdapter;
+    FoldersAdapter remotefoldersAdapter;
     List<String> list_usrfolder;
+    List<String> list_remotefolder;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,7 +67,7 @@ public class FoldersAcivity extends AppCompatActivity {
         folder = new Folder(new ArrayList<String>());
         folder.addFoldersName("favorite");
 
-        //initialize Folders
+        //initialize custom folders
         //Read from Folders.db to class Folder
         final FolderHelper folderHelper = new FolderHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1);
         final SQLiteDatabase db_folders = folderHelper.getReadableDatabase();
@@ -98,6 +102,7 @@ public class FoldersAcivity extends AppCompatActivity {
                 Log.d("FoldersAcivity:","已点击列表项:" + folderName);
                 Intent intent = new Intent(FoldersAcivity.this, FolderItemActivity.class);
                 intent.putExtra("folderName", folderName);
+                intent.putExtra("type", "local");
                 startActivity(intent);
             }
         });
@@ -119,7 +124,7 @@ public class FoldersAcivity extends AppCompatActivity {
                 if (contextPosition != 0) {
                     switch (position) {
                         case 0:
-                            List<String> folders = folder.getFoldersName();
+                            //List<String> folders = folder.getFoldersName();
                             //usrfolderslist.getChildAt(contextPosition).setVisibility(View.GONE);
 
                             //sqlite删除列
@@ -184,7 +189,7 @@ public class FoldersAcivity extends AppCompatActivity {
                             if (db.isOpen()){
                                 db.close();
                             }
-                            foldersAdapter.notifyDataSetChanged();
+                            foldersAdapter.notifyDataSetChanged(); //folder.removeFoldersName(name)时删除了list_folder指向的区域
 
                             break;
                         default:
@@ -198,6 +203,34 @@ public class FoldersAcivity extends AppCompatActivity {
 
             }
         });
+
+        /* ============ Remote Folders ==============*/
+        remotefolderlist = (ListView)findViewById(R.id.remote_folder_list);
+        remotefolders = new Folder(new ArrayList<String>());
+
+        // TODO: getRemoteFolders：查询已有Folder
+        // remotefolers.addFoldersName
+
+        list_remotefolder = remotefolders.getFoldersName();
+        if (list_remotefolder.isEmpty()){
+            Log.d("FoldersActivity", "没有Remote文件夹");
+        }else {
+            remotefoldersAdapter = new FoldersAdapter(this, R.layout.folder_title, list_remotefolder);
+            remotefolderlist.setAdapter(remotefoldersAdapter);
+        }
+
+        remotefolderlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String folderName = ((TextView)remotefolderlist.getChildAt(i).findViewById(R.id.folder_title)).getText().toString();
+                Log.d("FoldersAcivity:","已点击列表项:" + folderName);
+                Intent intent = new Intent(FoldersAcivity.this, FolderItemActivity.class);
+                intent.putExtra("folderName", folderName);
+                intent.putExtra("type", "remote");
+                startActivity(intent);
+            }
+        });
+
 
     }
 
