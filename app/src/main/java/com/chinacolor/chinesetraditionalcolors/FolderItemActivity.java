@@ -49,21 +49,24 @@ public class FolderItemActivity extends AppCompatActivity {
         if (folderType.equals("local")){
             if (folderName.equals("favorite")) {
                 list_color = getColorItemList(folderName);
-                if(list_color != null){
+                if(!list_color.isEmpty()){
                     folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
                     lv_colorlist.setAdapter(folderItemAdapter);
                 }
             }else {
                 list_color = usr_getColorItemList(folderName);
-                if(list_color != null){
+                if(!list_color.isEmpty()){
                     folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
                     lv_colorlist.setAdapter(folderItemAdapter);
                 }
             }
         }else{//folderType.equals("remote")
-            // TODO: 查询远程 foldername = 1的Color条目
-            // 存入List<Color> list_color
-            // 显示color
+            // TODO: 查询远程收藏到foldername的颜色，即为foldername = 1的Color.db条目
+            // 存入list_color，注意list_color的每个元素都是一个Color对象
+            if (!list_color.isEmpty()){
+                folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
+                lv_colorlist.setAdapter(folderItemAdapter);
+            }
         }
 
         // 删除
@@ -107,7 +110,8 @@ public class FolderItemActivity extends AppCompatActivity {
                     }
 
                 }else{
-                    // TODO: Delete Color from 远程数据库
+                    // TODO: 删除收藏的Color from 远程数据库。把相应收藏标记置为0就可以。
+                    // 如果删除成功，执行一下list_color.remove(contextPosition);
                 }
 
                 folderItemAdapter.notifyDataSetChanged();

@@ -1,15 +1,12 @@
 package com.chinacolor.chinesetraditionalcolors;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
-import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -37,7 +34,6 @@ import java.util.List;
  *
  * listView嵌套无解，推荐用新的Activity
  *
- * TODO:重新建表后会重复添加收藏！！
  *
  */
 
@@ -208,8 +204,8 @@ public class FoldersAcivity extends AppCompatActivity {
         remotefolderlist = (ListView)findViewById(R.id.remote_folder_list);
         remotefolders = new Folder(new ArrayList<String>());
 
-        // TODO: getRemoteFolders：查询已有Folder
-        // remotefolers.addFoldersName
+        // TODO: getRemoteFolders：查询远程收藏夹
+        // 添加到远程文件列表里：remotefolers.addFoldersName(远程文件夹名)
 
         list_remotefolder = remotefolders.getFoldersName();
         if (list_remotefolder.isEmpty()){
@@ -289,14 +285,6 @@ public class FoldersAcivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.new_folder_button) {
             String name = folder.CreatenewFolder(FoldersAcivity.this);
-
-//            SQLiteDatabase db_usr = new UserFavorHelper(this, DATABASEINFO.USRDB_NAME, null, 1).getWritableDatabase();
-//            db_usr.beginTransaction();
-//            db_usr.execSQL("alter table "+DATABASEINFO.USRTABLE_NAME+ " add column " + name + "2 integer");
-//            db_usr.execSQL("alter table "+DATABASEINFO.USRTABLE_NAME+ " add column " + name + "3 integer;");
-//            Log.d("FoldersAcivity.java", "增加"+ name + "列成功");
-//            db_usr.endTransaction();
-//            db_usr.close();
 
             if (name != null){
                 //刷新视图

@@ -300,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
 
             final int localFolders_length = names.size();
 
-            //TODO: get 远程folder的name
+            //TODO: 查询远程收藏夹的name
             // names.add(name);
 
             //dialog
@@ -351,12 +351,13 @@ public class MainActivity extends AppCompatActivity {
                         }catch (android.database.sqlite.SQLiteConstraintException e){
                             // 这里不知道为什么执行不到
                             e.printStackTrace();
-                            Log.d("MainActivtit", "插入失败！!" + e.getMessage());
+                            Log.d("MainActivtity", "插入失败！!" + e.getMessage());
                         }finally {
                             db.close();
                         }
                     }else{
-                        // TODO: 存到远程的names.get(i)文件夹里
+                        // 当前选中的收藏夹是names.get(i)
+                        // TODO: 把当前颜色存到当前选中的远程的收藏夹里，也就是表里的收藏标记置1.
                     }
 
 
