@@ -49,6 +49,7 @@ public class FolderItemAdapter extends ArrayAdapter<Color> {
         viewHolder.colorName.setText(color.getColorName());
         viewHolder.colorvalueHex.setText("#" + Integer.toHexString(color.getColorValue()));
         GradientDrawable myGrad = (GradientDrawable)viewHolder.color.getBackground();
+        // TODO: ARGB 8位颜色。解决：高位自动补ff
         myGrad.setColor(color.getColorValue());
 
         return view;

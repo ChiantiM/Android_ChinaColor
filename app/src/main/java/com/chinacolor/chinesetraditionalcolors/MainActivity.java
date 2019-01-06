@@ -31,7 +31,19 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -322,8 +334,81 @@ public class MainActivity extends AppCompatActivity {
             dialog.show();
             dialog.getWindow().setContentView(R.layout.dialog_addto);
             ListView lv = (ListView)dialog.getWindow().findViewById(R.id.dialog_addto_lv);
-            FoldersAdapter adapter  = new FoldersAdapter(this, R.layout.folder_title, names);
+            final FoldersAdapter adapter  = new FoldersAdapter(this, R.layout.folder_title, names);
             lv.setAdapter(adapter);
+            // 远程收藏夹查询
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    HttpURLConnection connection = null;
+                    BufferedReader reader = null;
+                    try{
+                        URL url = new URL("http://10.128.237.63:8080/chinacolor/db_selectall_folder.php");
+                        connection = (HttpURLConnection) url.openConnection();
+                        connection.setRequestMethod("GET");
+                        connection.setConnectTimeout(5000);
+                        connection.setReadTimeout(5000);
+
+                        InputStream in = connection.getInputStream();
+
+                        reader = new BufferedReader(new InputStreamReader(in));
+                        StringBuilder result = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            result.append(line);
+                        }
+
+                        String content = result.toString();
+
+                        JSONObject jsonObject = new JSONObject(content);
+                        if (jsonObject.getInt("success") == 1){
+                            JSONArray folders = jsonObject.getJSONArray("data");
+                            for (int i = 0; i < folders.length(); i++){
+                                try{
+                                    JSONObject folder = folders.getJSONObject(i);
+                                    String name = folder.getString("name");
+                                    names.add(name);
+                                }catch (JSONException e){
+                                    e.printStackTrace();
+                                }finally {
+
+                                }
+                            }
+                        }
+                        else{
+                            // TODO：处理状态
+                        }
+
+                    } catch (MalformedURLException e){
+                        e.printStackTrace();
+                    } catch (ProtocolException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e){
+                        e.printStackTrace();
+                    }finally {
+                        if (reader != null) {
+                            try {
+                                reader.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if (connection != null) {//关闭连接
+                            connection.disconnect();
+                        }
+                        // TODO：需要选择一个Context，dialog是不是一个thread
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
+
+                    }
+                }
+            }).start();
             lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {

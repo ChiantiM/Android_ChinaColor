@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,6 +20,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,12 +78,75 @@ public class FolderItemActivity extends AppCompatActivity {
                 }
             }
         }else{//folderType.equals("remote")
-            // TODO: 查询远程收藏到foldername的颜色，即为foldername = 1的Color.db条目
+            list_color = new ArrayList<Color>();
             // 存入list_color，注意list_color的每个元素都是一个Color对象
-            if (!list_color.isEmpty()){
-                folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
-                lv_colorlist.setAdapter(folderItemAdapter);
-            }
+            folderItemAdapter = new FolderItemAdapter(this, R.layout.item_layout, list_color);
+            lv_colorlist.setAdapter(folderItemAdapter);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    HttpURLConnection connection = null;
+                    BufferedReader reader = null;
+                    try{
+                        URL url = new URL("http://10.128.237.63:8080/chinacolor/db_selectall_color.php?name="+folderName);
+                        connection = (HttpURLConnection) url.openConnection();
+                        connection.setRequestMethod("GET");
+                        connection.setConnectTimeout(5000);
+                        connection.setReadTimeout(5000);
+
+//                        Debug.waitForDebugger();
+                        InputStream in = connection.getInputStream();
+
+                        reader = new BufferedReader(new InputStreamReader(in));
+                        StringBuilder result = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            result.append(line);
+                        }
+
+                        String content = result.toString();
+
+                        JSONObject jsonObject = new JSONObject(content);
+                        if (jsonObject.getInt("success")==1){
+                            JSONArray colors = jsonObject.getJSONArray("data");
+                            for (int i = 0; i<colors.length(); i++){
+                                JSONObject colorobj = colors.getJSONObject(i);
+                                long value = Long.parseLong(colorobj.getString("value"), 16);
+                                String colorName = colorobj.getString("name");
+                                list_color.add(new Color(colorName, new Long(value).intValue()));
+                            }
+                        }
+
+                    } catch (MalformedURLException e){
+                        e.printStackTrace();
+                    } catch (ProtocolException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (JSONException e){
+                        e.printStackTrace();
+                    }finally {
+                        if (reader != null) {
+                            try {
+                                reader.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if (connection != null) {//关闭连接
+                            connection.disconnect();
+                        }
+                        FolderItemActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                folderItemAdapter.notifyDataSetChanged(); //Update UI
+                            }
+                        });
+
+                    }
+                }
+            }).start();
+
         }
 
         lv_colorlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -202,4 +278,5 @@ public class FolderItemActivity extends AppCompatActivity {
         cbm.setPrimaryClip(mClipdata);
         Toast.makeText(context, "已复制"+ content+"到剪贴板", Toast.LENGTH_SHORT).show();
     }
+
 }

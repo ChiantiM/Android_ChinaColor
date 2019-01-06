@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Debug;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
@@ -18,6 +21,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +63,7 @@ public class FoldersAcivity extends AppCompatActivity {
     FoldersAdapter remotefoldersAdapter;
     List<String> list_usrfolder;
     List<String> list_remotefolder;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -204,16 +220,85 @@ public class FoldersAcivity extends AppCompatActivity {
         remotefolderlist = (ListView)findViewById(R.id.remote_folder_list);
         remotefolders = new Folder(new ArrayList<String>());
 
-        // TODO: getRemoteFolders：查询远程收藏夹
-        // 添加到远程文件列表里：remotefolers.addFoldersName(远程文件夹名)
-
         list_remotefolder = remotefolders.getFoldersName();
         if (list_remotefolder.isEmpty()){
             Log.d("FoldersActivity", "没有Remote文件夹");
-        }else {
-            remotefoldersAdapter = new FoldersAdapter(this, R.layout.folder_title, list_remotefolder);
-            remotefolderlist.setAdapter(remotefoldersAdapter);
         }
+        remotefoldersAdapter = new FoldersAdapter(this, R.layout.folder_title, list_remotefolder);
+        remotefolderlist.setAdapter(remotefoldersAdapter);
+
+        // 远程收藏夹查询
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection connection = null;
+                BufferedReader reader = null;
+                try{
+                    URL url = new URL("http://10.128.237.63:8080/chinacolor/db_selectall_folder.php");
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setConnectTimeout(5000);
+                    connection.setReadTimeout(5000);
+
+                    InputStream in = connection.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(in));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+
+                    String content = result.toString();
+
+                    JSONObject jsonObject = new JSONObject(content);
+                    if (jsonObject.getInt("success") == 1){
+                        JSONArray folders = jsonObject.getJSONArray("data");
+                        for (int i = 0; i < folders.length(); i++){
+                            try{
+                                JSONObject folder = folders.getJSONObject(i);
+                                String name = folder.getString("name");
+                                remotefolders.addFoldersName(name);
+                            }catch (JSONException e){
+                                e.printStackTrace();
+                            }finally {
+
+                            }
+                        }
+                    }
+                    else{
+                        // TODO：处理状态
+                    }
+
+                } catch (MalformedURLException e){
+                    e.printStackTrace();
+                } catch (ProtocolException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (connection != null) {//关闭连接
+                        connection.disconnect();
+                    }
+                    FoldersAcivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            remotefoldersAdapter.notifyDataSetChanged();
+                        }
+                    });
+
+                }
+            }
+        }).start();
 
         remotefolderlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -226,6 +311,7 @@ public class FoldersAcivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
 
 
     }
@@ -296,6 +382,7 @@ public class FoldersAcivity extends AppCompatActivity {
             return false;
         }
     }
+
 
 }
 
