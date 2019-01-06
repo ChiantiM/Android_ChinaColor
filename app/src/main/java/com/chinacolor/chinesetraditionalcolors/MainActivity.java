@@ -5,7 +5,10 @@ import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -23,6 +26,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView color_g;
     private TextView color_b;
     private ImageView favor;
+    private View ll_title;
 
 
     public int currentColorpos = 0;
@@ -93,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         colorList_init();
         title = (TextView)findViewById(R.id.color_title);
         title.setText(colorname[currentColorpos]);
+        ll_title  = (LinearLayout)findViewById(R.id.mainactivity_title);
 
         //ActionBars
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -192,6 +198,14 @@ public class MainActivity extends AppCompatActivity {
                             + "\n name = " + colorname[currentColorpos]);
                 }
 
+            }
+        });
+
+        ll_title.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String content = Integer.toHexString(colorValue[currentColorpos]).substring(2);
+                copy(content, MainActivity.this);
             }
         });
 
@@ -344,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
                                         Log.d("MainAcitvity", "再次收藏成功");
                                     }
                                 }else {
-                                    Log.d("MainActivtiy","添加失败返回了" + row + "行");
+                                    Log.d("MainActivtiy","添加失败，返回了" + row + "行");
                                 }
                             }
                             cursor1.close();
@@ -369,6 +383,12 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public static void copy(String content, Context context){
+        ClipboardManager cbm = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData mClipdata = ClipData.newPlainText("color_rgb", content);
+        cbm.setPrimaryClip(mClipdata);
+        Toast.makeText(context, "已复制"+ content+"到剪贴板", Toast.LENGTH_SHORT).show();
+    }
 
 }
 

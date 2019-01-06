@@ -1,6 +1,9 @@
 package com.chinacolor.chinesetraditionalcolors;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,6 +73,14 @@ public class FolderItemActivity extends AppCompatActivity {
             }
         }
 
+        lv_colorlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String color_rgb = Integer.toHexString(list_color.get(i).getColorValue()).substring(2);
+                copy(color_rgb, FolderItemActivity.this);
+            }
+        });
+
         // 删除
         final PopupList popupList = new PopupList(FolderItemActivity.this);
         List<String> longPress = new ArrayList<>();
@@ -82,8 +94,7 @@ public class FolderItemActivity extends AppCompatActivity {
             @Override
             public void onPopupListClick(View contextView, int contextPosition, int position) {
                 TextView tv_rgb = lv_colorlist.getChildAt(contextPosition).findViewById(R.id.item_rgb);
-                String color_rgb_text = tv_rgb.getText().toString();
-                String color_rgb = color_rgb_text.substring(1); // Remove # at the beginning
+                String color_rgb = tv_rgb.getText().toString().substring(1);
 
                 if (folderType.equals("local")){
                     // 删除颜色，就是修改数据库
@@ -183,5 +194,12 @@ public class FolderItemActivity extends AppCompatActivity {
 
 
         return colorItemList;
+    }
+
+    public static void copy(String content, Context context){
+        ClipboardManager cbm = (ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData mClipdata = ClipData.newPlainText("color_rgb", content);
+        cbm.setPrimaryClip(mClipdata);
+        Toast.makeText(context, "已复制"+ content+"到剪贴板", Toast.LENGTH_SHORT).show();
     }
 }
