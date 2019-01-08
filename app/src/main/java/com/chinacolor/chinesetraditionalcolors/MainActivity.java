@@ -14,6 +14,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -309,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
         if (id == R.id.action_addTo){
-            //query from DB
+            //query folder from DB
             final List<String> names = new ArrayList<>();
             SQLiteDatabase db = new UserFavorHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1).getReadableDatabase();
             final Cursor cursor= db.query(DATABASEINFO.FOLDERTABLE_NAME, null, null, null, null, null, null);
@@ -326,8 +327,6 @@ public class MainActivity extends AppCompatActivity {
 
             final int localFolders_length = names.size();
 
-            //TODO: 查询远程收藏夹的name
-            // names.add(name);
 
             //dialog
             final AlertDialog dialog = new AlertDialog.Builder(this).create();
@@ -336,79 +335,10 @@ public class MainActivity extends AppCompatActivity {
             ListView lv = (ListView)dialog.getWindow().findViewById(R.id.dialog_addto_lv);
             final FoldersAdapter adapter  = new FoldersAdapter(this, R.layout.folder_title, names);
             lv.setAdapter(adapter);
+
             // 远程收藏夹查询
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    HttpURLConnection connection = null;
-                    BufferedReader reader = null;
-                    try{
-                        URL url = new URL("http://10.128.237.63:8080/chinacolor/db_selectall_folder.php");
-                        connection = (HttpURLConnection) url.openConnection();
-                        connection.setRequestMethod("GET");
-                        connection.setConnectTimeout(5000);
-                        connection.setReadTimeout(5000);
+            remote_folder_query(names, adapter);
 
-                        InputStream in = connection.getInputStream();
-
-                        reader = new BufferedReader(new InputStreamReader(in));
-                        StringBuilder result = new StringBuilder();
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            result.append(line);
-                        }
-
-                        String content = result.toString();
-
-                        JSONObject jsonObject = new JSONObject(content);
-                        if (jsonObject.getInt("success") == 1){
-                            JSONArray folders = jsonObject.getJSONArray("data");
-                            for (int i = 0; i < folders.length(); i++){
-                                try{
-                                    JSONObject folder = folders.getJSONObject(i);
-                                    String name = folder.getString("name");
-                                    names.add(name);
-                                }catch (JSONException e){
-                                    e.printStackTrace();
-                                }finally {
-
-                                }
-                            }
-                        }
-                        else{
-                            // TODO：处理状态
-                        }
-
-                    } catch (MalformedURLException e){
-                        e.printStackTrace();
-                    } catch (ProtocolException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e){
-                        e.printStackTrace();
-                    }finally {
-                        if (reader != null) {
-                            try {
-                                reader.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if (connection != null) {//关闭连接
-                            connection.disconnect();
-                        }
-                        // TODO：需要选择一个Context，dialog是不是一个thread
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                adapter.notifyDataSetChanged();
-                            }
-                        });
-
-                    }
-                }
-            }).start();
             lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -455,8 +385,10 @@ public class MainActivity extends AppCompatActivity {
                             db.close();
                         }
                     }else{
-                        // 当前选中的收藏夹是names.get(i)
-                        // TODO: 把当前颜色存到当前选中的远程的收藏夹里，也就是表里的收藏标记置1.
+                        // 把当前颜色存到当前选中的远程的收藏夹里，也就是表里的收藏标记置1.
+                        final int folderindex = i;
+                        remote_add_to_folder(names,folderindex,adapter);
+
                     }
 
 
@@ -473,6 +405,162 @@ public class MainActivity extends AppCompatActivity {
         ClipData mClipdata = ClipData.newPlainText("color_rgb", content);
         cbm.setPrimaryClip(mClipdata);
         Toast.makeText(context, "已复制"+ content+"到剪贴板", Toast.LENGTH_SHORT).show();
+    }
+
+    private void remote_folder_query(final List<String> names, final FoldersAdapter adapter){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection connection = null;
+                BufferedReader reader = null;
+                try{
+                    URL url = new URL(ServerInfo.Url+"db_selectall_folder.php");
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setConnectTimeout(5000);
+                    connection.setReadTimeout(5000);
+
+                    InputStream in = connection.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(in));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+
+                    String content = result.toString();
+
+                    JSONObject jsonObject = new JSONObject(content);
+                    if (jsonObject.getInt("success") == 1){
+                        JSONArray folders = jsonObject.getJSONArray("data");
+                        for (int i = 0; i < folders.length(); i++){
+                            try{
+                                JSONObject folder = folders.getJSONObject(i);
+                                String name = folder.getString("name");
+                                names.add(name);
+                            }catch (JSONException e){
+                                e.printStackTrace();
+                            }finally {
+
+                            }
+                        }
+                    }
+                    else{
+                        // TODO：处理状态
+                    }
+
+                } catch (MalformedURLException e){
+                    e.printStackTrace();
+                } catch (ProtocolException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (connection != null) {//关闭连接
+                        connection.disconnect();
+                    }
+                    // TODO：需要选择一个Context，dialog是不是一个thread
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+
+                }
+            }
+        }).start();
+    }
+
+    private void remote_add_to_folder(final List<String> names, final int folderindex, final FoldersAdapter adapter){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(Looper.myLooper() == null)
+                {
+                    Looper.prepare();
+                }
+
+                HttpURLConnection connection = null;
+                BufferedReader reader = null;
+                int success = 0;
+                try{
+                    URL url = new URL(ServerInfo.Url+"db_add_color.php?name="
+                            +colorname[currentColorpos]+"&value="+Integer.toHexString(colorValue[currentColorpos])
+                            +"&folderName="+names.get(folderindex));
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setConnectTimeout(5000);
+                    connection.setReadTimeout(5000);
+
+                    InputStream in = connection.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(in));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+                    String content = result.toString();
+                    content = content.replace("\uFEFF", "");
+                    JSONObject jsonObject = new JSONObject(content);
+                    success = jsonObject.getInt("success");
+                    String message = jsonObject.getString("message");
+                    if (success == 1){
+                        Toast.makeText(MainActivity.this, "添加成功", Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        if (message.matches("(.*)Duplicate(.*)")){
+                            Toast.makeText(MainActivity.this, "已存在", Toast.LENGTH_SHORT).show();
+                        }else {
+                            Toast.makeText(MainActivity.this, "添加失败", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                } catch (MalformedURLException e){
+                    // TODO: 异常处理
+                    e.printStackTrace();
+                } catch (ProtocolException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (connection != null) {//关闭连接
+                        connection.disconnect();
+                    }
+
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+
+                Looper.loop();
+            }
+        }).start();
+
     }
 
 }

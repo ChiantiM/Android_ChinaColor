@@ -228,77 +228,7 @@ public class FoldersAcivity extends AppCompatActivity {
         remotefolderlist.setAdapter(remotefoldersAdapter);
 
         // 远程收藏夹查询
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                HttpURLConnection connection = null;
-                BufferedReader reader = null;
-                try{
-                    URL url = new URL(ServerInfo.Url + "db_selectall_folder.php");
-                    connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setConnectTimeout(5000);
-                    connection.setReadTimeout(5000);
-
-                    InputStream in = connection.getInputStream();
-
-                    reader = new BufferedReader(new InputStreamReader(in));
-                    StringBuilder result = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        result.append(line);
-                    }
-
-                    String content = result.toString();
-
-                    JSONObject jsonObject = new JSONObject(content);
-                    if (jsonObject.getInt("success") == 1){
-                        JSONArray folders = jsonObject.getJSONArray("data");
-                        for (int i = 0; i < folders.length(); i++){
-                            try{
-                                JSONObject folder = folders.getJSONObject(i);
-                                String name = folder.getString("name");
-                                remotefolders.addFoldersName(name);
-                            }catch (JSONException e){
-                                e.printStackTrace();
-                            }finally {
-
-                            }
-                        }
-                    }
-                    else{
-                        // TODO：处理状态
-                    }
-
-                } catch (MalformedURLException e){
-                    e.printStackTrace();
-                } catch (ProtocolException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e){
-                    e.printStackTrace();
-                }finally {
-                    if (reader != null) {
-                        try {
-                            reader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (connection != null) {//关闭连接
-                        connection.disconnect();
-                    }
-                    FoldersAcivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            remotefoldersAdapter.notifyDataSetChanged();
-                        }
-                    });
-
-                }
-            }
-        }).start();
+        remote_folder_query();
 
         remotefolderlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -381,6 +311,80 @@ public class FoldersAcivity extends AppCompatActivity {
         }else {
             return false;
         }
+    }
+
+    public void remote_folder_query(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection connection = null;
+                BufferedReader reader = null;
+                try{
+                    URL url = new URL(ServerInfo.Url + "db_selectall_folder.php");
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setConnectTimeout(5000);
+                    connection.setReadTimeout(5000);
+
+                    InputStream in = connection.getInputStream();
+
+                    reader = new BufferedReader(new InputStreamReader(in));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+
+                    String content = result.toString();
+
+                    JSONObject jsonObject = new JSONObject(content);
+                    if (jsonObject.getInt("success") == 1){
+                        JSONArray folders = jsonObject.getJSONArray("data");
+                        for (int i = 0; i < folders.length(); i++){
+                            try{
+                                JSONObject folder = folders.getJSONObject(i);
+                                String name = folder.getString("name");
+                                remotefolders.addFoldersName(name);
+                            }catch (JSONException e){
+                                e.printStackTrace();
+                            }finally {
+
+                            }
+                        }
+                    }
+                    else{
+                        // TODO：处理状态
+                    }
+
+                } catch (MalformedURLException e){
+                    e.printStackTrace();
+                } catch (ProtocolException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (connection != null) {//关闭连接
+                        connection.disconnect();
+                    }
+                    FoldersAcivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            remotefoldersAdapter.notifyDataSetChanged();
+                        }
+                    });
+
+                }
+            }
+        }).start();
     }
 
 
