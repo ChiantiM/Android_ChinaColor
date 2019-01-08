@@ -310,21 +310,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
         if (id == R.id.action_addTo){
-            //query folder from DB
+            //query local folders
             final List<String> names = new ArrayList<>();
-            SQLiteDatabase db = new UserFavorHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1).getReadableDatabase();
-            final Cursor cursor= db.query(DATABASEINFO.FOLDERTABLE_NAME, null, null, null, null, null, null);
-            if (cursor != null){
-                if (cursor.moveToFirst()){
-                    do {
-                        String name = cursor.getString(cursor.getColumnIndex("name"));
-                        names.add(name);
-                    }while (cursor.moveToNext());
-                    Log.d("Main activity", "查询成功");
-                }else {Log.d("Main activity", "查询成功，无数据");}
-            }else {Log.d("Main activity", "Cursor为空");}
-            cursor.close();
-
+            local_folder_query(names);
             final int localFolders_length = names.size();
 
 
@@ -343,52 +331,11 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     if (i<localFolders_length){
-                        //存到user.db
-                        SQLiteDatabase db = new UserFavorHelper(MainActivity.this, DATABASEINFO.USRDB_NAME, null, 1)
-                                .getWritableDatabase();
-                        ContentValues contentValues = new ContentValues();
-
-                        contentValues.put("name", colorname[currentColorpos]);
-                        String color_rgb = Integer.toHexString(colorValue[currentColorpos]);
-                        contentValues.put("value", color_rgb);
-                        String foldername = names.get(i);
-                        contentValues.put(foldername, 1); // List Name
-
-                        try{
-                            Cursor cursor1 = db.query(DATABASEINFO.USRTABLE_NAME, new String[]{"value", foldername}, "value = ?", new String[]{color_rgb}, null, null, null);
-                            if (!cursor1.moveToFirst()){
-                                long issuccess = db.insert(DATABASEINFO.USRTABLE_NAME, null, contentValues);
-                                if (issuccess != -1){
-                                    Toast.makeText(MainActivity.this, "已添加到"+foldername, Toast.LENGTH_SHORT).show();
-                                }
-                            } else { // 已经存在更新
-                                contentValues = new ContentValues();
-                                contentValues.put(foldername, 1);
-                                int row = db.update(DATABASEINFO.USRTABLE_NAME, contentValues, "value = ?", new String[]{color_rgb});
-                                if (row == 1) {
-                                    if (cursor1.getInt(cursor1.getColumnIndex(foldername)) == 1){
-                                        Toast.makeText(MainActivity.this, "已存在"+foldername+"中", Toast.LENGTH_SHORT).show();
-                                    }else {
-                                        Toast.makeText(MainActivity.this, "添加成功", Toast.LENGTH_SHORT).show();
-                                        Log.d("MainAcitvity", "再次收藏成功");
-                                    }
-                                }else {
-                                    Log.d("MainActivtiy","添加失败，返回了" + row + "行");
-                                }
-                            }
-                            cursor1.close();
-                        }catch (android.database.sqlite.SQLiteConstraintException e){
-                            // 这里不知道为什么执行不到
-                            e.printStackTrace();
-                            Log.d("MainActivtity", "插入失败！!" + e.getMessage());
-                        }finally {
-                            db.close();
-                        }
+                        local_add_to_folder(names, i);
                     }else{
                         // 把当前颜色存到当前选中的远程的收藏夹里，也就是表里的收藏标记置1.
                         final int folderindex = i;
                         remote_add_to_folder(names,folderindex,adapter);
-
                     }
 
 
@@ -405,6 +352,21 @@ public class MainActivity extends AppCompatActivity {
         ClipData mClipdata = ClipData.newPlainText("color_rgb", content);
         cbm.setPrimaryClip(mClipdata);
         Toast.makeText(context, "已复制"+ content+"到剪贴板", Toast.LENGTH_SHORT).show();
+    }
+
+    private void local_folder_query(final List<String> names){
+        SQLiteDatabase db = new UserFavorHelper(this, DATABASEINFO.FOLDERDB_NAME, null, 1).getReadableDatabase();
+        final Cursor cursor= db.query(DATABASEINFO.FOLDERTABLE_NAME, null, null, null, null, null, null);
+        if (cursor != null){
+            if (cursor.moveToFirst()){
+                do {
+                    String name = cursor.getString(cursor.getColumnIndex("name"));
+                    names.add(name);
+                }while (cursor.moveToNext());
+                Log.d("Main activity", "查询成功");
+            }else {Log.d("Main activity", "查询成功，无数据");}
+        }else {Log.d("Main activity", "Cursor为空");}
+        cursor.close();
     }
 
     private void remote_folder_query(final List<String> names, final FoldersAdapter adapter){
@@ -563,6 +525,48 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void local_add_to_folder(final List<String> names, int i){
+        SQLiteDatabase db = new UserFavorHelper(MainActivity.this, DATABASEINFO.USRDB_NAME, null, 1)
+                .getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put("name", colorname[currentColorpos]);
+        String color_rgb = Integer.toHexString(colorValue[currentColorpos]);
+        contentValues.put("value", color_rgb);
+        String foldername = names.get(i);
+        contentValues.put(foldername, 1); // List Name
+
+        try{
+            Cursor cursor1 = db.query(DATABASEINFO.USRTABLE_NAME, new String[]{"value", foldername}, "value = ?", new String[]{color_rgb}, null, null, null);
+            if (!cursor1.moveToFirst()){
+                long issuccess = db.insert(DATABASEINFO.USRTABLE_NAME, null, contentValues);
+                if (issuccess != -1){
+                    Toast.makeText(MainActivity.this, "已添加到"+foldername, Toast.LENGTH_SHORT).show();
+                }
+            } else { // 已经存在更新
+                contentValues = new ContentValues();
+                contentValues.put(foldername, 1);
+                int row = db.update(DATABASEINFO.USRTABLE_NAME, contentValues, "value = ?", new String[]{color_rgb});
+                if (row == 1) {
+                    if (cursor1.getInt(cursor1.getColumnIndex(foldername)) == 1){
+                        Toast.makeText(MainActivity.this, "已存在"+foldername+"中", Toast.LENGTH_SHORT).show();
+                    }else {
+                        Toast.makeText(MainActivity.this, "添加成功", Toast.LENGTH_SHORT).show();
+                        Log.d("MainAcitvity", "再次收藏成功");
+                    }
+                }else {
+                    Log.d("MainActivtiy","添加失败，返回了" + row + "行");
+                }
+            }
+            cursor1.close();
+        }catch (android.database.sqlite.SQLiteConstraintException e){
+            // 这里不知道为什么执行不到
+            e.printStackTrace();
+            Log.d("MainActivtity", "插入失败！!" + e.getMessage());
+        }finally {
+            db.close();
+        }
+    }
 }
 
 

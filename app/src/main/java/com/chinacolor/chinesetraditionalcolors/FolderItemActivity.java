@@ -136,7 +136,6 @@ public class FolderItemActivity extends AppCompatActivity {
                     }
 
                 }else{
-                    // TODO: 删除收藏的Color from 远程数据库。把相应收藏标记置为0就可以。
                     // 如果删除成功，执行一下list_color.remove(contextPosition);
                     final int i = contextPosition;
                     remote_color_delete(color_argb, i);

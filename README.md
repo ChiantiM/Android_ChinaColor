@@ -23,7 +23,7 @@ FolderItemAcivity.java（收藏条目界面）
 
 Colors表：
 
-| name(text) | value(text) | favorite(integer) |
+| name(text) | value(text) Primary Key | favorite(integer) |
 | ---------- | ----------- | ----------------- |
 | 玫瑰红     | ff973444    | 1                 |
 
@@ -33,12 +33,26 @@ Folders表：
 | ---------- |
 | Folder1    |
 
-Userfavor表
+UserFavor表
 
-| name(text) | value(text) | 收藏夹1 (integer) | …(其他收藏夹) |
+| name(text) | value(text) Primary Key | Folder1(integer) | …(其他收藏夹) |
 | ---------- | ----------- | ----------------- | ------------- |
 | 玫瑰红     | ff973444    | 1                 |               |
 
+若要使用远程数据库，服务器上需要有Folders表和UserFavor表。Folders表的行和UserFavor的新增列需一致
+
+HTTP请求后返回JSON并解析。HTTP接口格式如下:
+
+```java
+//查询指定folder的颜色
+ServerInfo.Url+"db_selectall_color.php?name="+folderName
+//查询所有folders的名字
+ServerInfo.Url + "db_selectall_folder.php"
+//添加到远程folder
+ServerInfo.Url+"db_add_color.php?name="+colorname+"&value="+colorValue+"&folderName="+folderName
+//从远程folder删除
+ServerInfo.Url+"db_delete_color.php?value="+color_argb+"&folderName="+folderName
+```
 
 
 ### 3. 其他文件：
@@ -56,6 +70,6 @@ Userfavor表
 顶部有一个Actionbar，下面是固定当前选中的颜色名称、当前选中颜色的RGB值、是否添加到Favorite收藏夹小星星。再往下是展示色板的Gridview，点击不同颜色可以做到渐变更换整个界面的背景色和名称。
 3. 显示颜色：
 开始收集了不同的颜色名称和RGB值，存到了整形数组colorValue和字符串数组colorname，在使用两个数组初始化一个List＜Color＞ colorList。使用该List填入ColorAdapter适配器，再使用适配器初始化gridview。
-4. 背景色和标题渐变：
-		在程序开始时创建currentpos储存当前选中**颜色位置(currentcolorpos)**，默认值值为0。在gridviewitem的点击事件中，先使用自己事先封装好的crossfade函数进行背景色渐变，同时检测新的颜色有没有被收藏（若被收藏小星星变黄色），然后将当前的点击位置传给currentpos。 
-	其中crossfade函数的主要功能是实现背景色、标题的渐变显示和十进制RGB值的改变。
+4. 背景色和标题渐变：  
+在程序开始时创建currentpos储存当前选中**颜色位置(currentcolorpos)**，默认值值为0。在gridviewitem的点击事件中，先使用自己事先封装好的crossfade函数进行背景色渐变，同时检测新的颜色有没有被收藏（若被收藏小星星变黄色），然后将当前的点击位置传给currentpos。   
+其中crossfade函数的主要功能是实现背景色、标题的渐变显示和十进制RGB值的改变。
