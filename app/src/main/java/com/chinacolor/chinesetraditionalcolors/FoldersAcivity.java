@@ -234,7 +234,7 @@ public class FoldersAcivity extends AppCompatActivity {
                 HttpURLConnection connection = null;
                 BufferedReader reader = null;
                 try{
-                    URL url = new URL("http://10.128.237.63:8080/chinacolor/db_selectall_folder.php");
+                    URL url = new URL(ServerInfo.Url + "db_selectall_folder.php");
                     connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
                     connection.setConnectTimeout(5000);
